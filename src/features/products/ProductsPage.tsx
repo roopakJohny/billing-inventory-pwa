@@ -73,11 +73,12 @@ export const ProductsPage: React.FC = () => {
     initialExpiryDate: '',
   });
 
-  const [csvText, setCsvText] = useState(
-    isPharmacy
-      ? 'name,sku,barcode,categoryName,genericName,brand,dosageForm,strength,manufacturer,scheduleCategory,prescriptionRequired,hsnCode,unitOfMeasurement,purchasePrice,mrp,sellingPrice,taxPercentage,minimumStockLevel,openingStock,batchNumber,expiryDate\nPantocid 40mg Tablet (15s),MED-PANT-40,890111229901,Cardiac & Diabetic Care,Pantoprazole,Pantocid,Tablet,40 mg,Sun Pharma,Schedule H,true,30049034,STRIP,98,165,148,12,20,80,PANT-26A,2027-09-30'
-      : 'name,sku,barcode,categoryName,brand,variant,unitOfMeasurement,purchasePrice,mrp,sellingPrice,taxPercentage,minimumStockLevel,openingStock,batchNumber,expiryDate\nRoasted California Almonds 500g,GRC-ALM-500,890123459902,Packaged Grocery & Staples,NutriHarvest,500g Pouch,PACK,360,550,499,5,15,50,BATCH-ALM-01,2027-06-30'
-  );
+  const sampleCsvContent = isPharmacy
+    ? 'name,sku,barcode,categoryName,genericName,brand,dosageForm,strength,manufacturer,scheduleCategory,prescriptionRequired,hsnCode,unitOfMeasurement,purchasePrice,mrp,sellingPrice,taxPercentage,minimumStockLevel,openingStock,batchNumber,expiryDate\nPantocid 40mg Tablet (15s),MED-PANT-40,890111229901,Cardiac & Diabetic Care,Pantoprazole,Pantocid,Tablet,40 mg,Sun Pharma,Schedule H,true,30049034,STRIP,98,165,148,12,20,80,PANT-26A,2027-09-30'
+    : 'name,sku,barcode,categoryName,brand,variant,unitOfMeasurement,purchasePrice,mrp,sellingPrice,taxPercentage,minimumStockLevel,openingStock,batchNumber,expiryDate\nRoasted California Almonds 500g,GRC-ALM-500,890123459902,Packaged Grocery & Staples,NutriHarvest,500g Pouch,PACK,360,550,499,5,15,50,BATCH-ALM-01,2027-06-30';
+
+  const [csvText, setCsvText] = useState('');
+  const [csvFileName, setCsvFileName] = useState('');
 
   const { data: categories } = useQuery({
     queryKey: ['categories', mode],
@@ -126,6 +127,8 @@ export const ProductsPage: React.FC = () => {
       );
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setCsvText('');
+      setCsvFileName('');
       setIsCsvModalOpen(false);
     },
     onError: (err: any) =>
@@ -218,6 +221,60 @@ export const ProductsPage: React.FC = () => {
     }
   };
 
+  const parseCsvLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast.error('Please select a valid .csv file');
+      return;
+    }
+    setCsvFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = String(event.target?.result || '');
+      setCsvText(content);
+      toast.success(`Loaded ${file.name}`);
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read CSV file');
+    };
+    reader.readAsText(file);
+  };
+
+  const downloadSampleCsv = () => {
+    const blob = new Blob([sampleCsvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = isPharmacy ? 'medicines-import-template.csv' : 'products-import-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleCsvImport = (e: React.FormEvent) => {
     e.preventDefault();
     const lines = csvText
@@ -225,37 +282,43 @@ export const ProductsPage: React.FC = () => {
       .map((l) => l.trim())
       .filter(Boolean);
     if (lines.length < 2) {
-      toast.error('CSV must contain a header row and at least 1 row');
+      toast.error('Please upload a CSV file with a header row and at least 1 data row');
       return;
     }
-    const headers = lines[0].split(',').map((h) => h.trim());
+    const headers = parseCsvLine(lines[0]);
     const parsedRows = lines.slice(1).map((line) => {
-      const values = line.split(',').map((v) => v.trim());
+      const values = parseCsvLine(line);
       const obj: any = {};
       headers.forEach((h, idx) => {
         obj[h] = values[idx];
       });
       return {
-        name: obj.name,
-        sku: obj.sku,
-        barcode: obj.barcode,
-        categoryName: obj.categoryName || 'General',
-        genericName: obj.genericName,
-        brand: obj.brand,
-        variant: obj.variant,
-        dosageForm: obj.dosageForm,
-        strength: obj.strength,
-        manufacturer: obj.manufacturer,
-        scheduleCategory: obj.scheduleCategory,
-        prescriptionRequired: obj.prescriptionRequired === 'true',
-        hsnCode: obj.hsnCode,
-        unitOfMeasurement: obj.unitOfMeasurement || (isPharmacy ? 'STRIP' : 'PCS'),
-        purchasePrice: Number(obj.purchasePrice || 0),
-        mrp: Number(obj.mrp || obj.sellingPrice || 0),
-        sellingPrice: Number(obj.sellingPrice || 0),
-        taxPercentage: Number(obj.taxPercentage || (isPharmacy ? 12 : 18)),
+        name: obj.name || obj.Name || obj.MedicineName,
+        sku: obj.sku || obj.SKU || obj.Code,
+        barcode: obj.barcode || obj.Barcode,
+        categoryName: obj.categoryName || obj.Category || 'General',
+        genericName: obj.genericName || obj.GenericName,
+        brand: obj.brand || obj.Brand,
+        variant: obj.variant || obj.Variant,
+        dosageForm: obj.dosageForm || obj.DosageForm,
+        strength: obj.strength || obj.Strength,
+        manufacturer: obj.manufacturer || obj.Manufacturer,
+        scheduleCategory: obj.scheduleCategory || obj.Schedule,
+        prescriptionRequired:
+          obj.prescriptionRequired === 'true' ||
+          obj.RxRequired === 'Yes' ||
+          obj.RxRequired === 'true',
+        hsnCode: obj.hsnCode || obj.HSN,
+        unitOfMeasurement:
+          obj.unitOfMeasurement || obj.Unit || (isPharmacy ? 'STRIP' : 'PCS'),
+        purchasePrice: Number(obj.purchasePrice || obj.PurchasePrice || 0),
+        mrp: Number(obj.mrp || obj.MRP || obj.sellingPrice || obj.SellingPrice || 0),
+        sellingPrice: Number(obj.sellingPrice || obj.SellingPrice || 0),
+        taxPercentage: Number(
+          obj.taxPercentage || obj.TaxPct || obj.GST || (isPharmacy ? 12 : 18)
+        ),
         minimumStockLevel: Number(obj.minimumStockLevel || 10),
-        openingStock: Number(obj.openingStock || 0),
+        openingStock: Number(obj.openingStock || obj.AvailableStock || 0),
         batchNumber: obj.batchNumber,
         expiryDate: obj.expiryDate,
       };
@@ -1097,16 +1160,66 @@ export const ProductsPage: React.FC = () => {
               </button>
             </div>
             <form onSubmit={handleCsvImport} className="p-6 space-y-4">
-              <p className="text-xs text-slate-600">
-                Paste CSV rows below (existing SKUs will be updated; new SKUs will be created with their opening batch):
-              </p>
-              <textarea
-                rows={7}
-                value={csvText}
-                onChange={(e) => setCsvText(e.target.value)}
-                className="w-full p-3 text-xs font-mono border border-slate-300 rounded-lg"
-              />
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <p className="text-xs text-slate-600">
+                  Upload a <span className="font-mono font-semibold">.csv</span> file to create or update {config.terms.productPlural.toLowerCase()} and their opening stock batches.
+                </p>
+                <button
+                  type="button"
+                  onClick={downloadSampleCsv}
+                  className="shrink-0 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg"
+                >
+                  Download Sample CSV
+                </button>
+              </div>
+
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50/50 hover:bg-blue-50/30 transition-colors p-4 text-center">
+                <Upload className="w-6 h-6 text-blue-600 mb-2" />
+                <span className="text-xs font-semibold text-slate-700">
+                  {csvFileName
+                    ? `Selected file: ${csvFileName}`
+                    : 'Click to select a .csv file from your computer'}
+                </span>
+                <span className="text-[11px] text-slate-500 mt-0.5">
+                  {csvText
+                    ? `${Math.max(0, csvText.split(/\r?\n/).filter((l) => l.trim()).length - 1)} row(s) ready to import`
+                    : 'Supports .csv files (existing SKUs update, new SKUs create)'}
+                </span>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleCsvFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {csvText && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-500 uppercase">
+                      CSV Preview (Editable)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCsvText('');
+                        setCsvFileName('');
+                      }}
+                      className="text-[11px] text-rose-600 hover:underline font-medium"
+                    >
+                      Clear file
+                    </button>
+                  </div>
+                  <textarea
+                    rows={5}
+                    value={csvText}
+                    onChange={(e) => setCsvText(e.target.value)}
+                    className="w-full p-3 text-xs font-mono border border-slate-300 rounded-lg"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsCsvModalOpen(false)}
@@ -1116,12 +1229,12 @@ export const ProductsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={bulkImportMutation.isPending}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  disabled={bulkImportMutation.isPending || !csvText.trim()}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg"
                 >
                   {bulkImportMutation.isPending
                     ? 'Importing...'
-                    : 'Run Bulk Import'}
+                    : 'Upload & Import CSV'}
                 </button>
               </div>
             </form>
