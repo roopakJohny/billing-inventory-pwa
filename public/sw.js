@@ -1,5 +1,5 @@
 const CACHE_NAME = 'apexpos-pwa-shell-v1';
-const APP_SHELL_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+const APP_SHELL_ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -40,7 +40,7 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() =>
-        caches.match(request).then((cached) => cached || caches.match('/index.html'))
+        caches.match(request).then((cached) => cached || caches.match('./index.html'))
       )
   );
 });

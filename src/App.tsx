@@ -18,7 +18,7 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BusinessModeProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <AppRouter />
           <Toaster
             position="top-right"
