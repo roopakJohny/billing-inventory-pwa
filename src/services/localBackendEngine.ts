@@ -187,15 +187,15 @@ function createInitialStoreDb() {
 
   const business = {
     id: 'biz-store',
-    name: 'Apex Retail Superstore',
-    legalName: 'Apex Retail Solutions Pvt. Ltd.',
+    name: 'Retail Store',
+    legalName: 'Retail Store Pvt. Ltd.',
     logoUrl: null,
     address: '42, MG Road, Indiranagar',
     city: 'Bengaluru',
     state: 'Karnataka',
     pincode: '560038',
     phone: '+91 98765 43210',
-    email: 'store@apexmart.in',
+    email: 'store@retailstore.in',
     gstin: '29AABCA1234F1Z5',
     settings: {
       id: 'set-store',
@@ -209,7 +209,7 @@ function createInitialStoreDb() {
       enableTaxInclusive: false,
       defaultPaymentMethods: ['CASH', 'CARD', 'UPI', 'BANK_TRANSFER'],
       receiptFooter:
-        'Thank you for shopping at Apex Retail Superstore! Exchange within 7 days with original invoice.',
+        'Thank you for shopping at Retail Store! Exchange within 7 days with original invoice.',
       printerPaperSize: '80mm' as '58mm' | '80mm' | 'A4',
       autoPrintReceipt: false,
       globalLowStockThreshold: 10,
@@ -839,15 +839,15 @@ function createInitialPharmacyDb() {
 
   const business = {
     id: 'biz-pharmacy',
-    name: 'Apex MedCare Pharmacy',
-    legalName: 'Apex MedCare Formulations Pvt. Ltd.',
+    name: 'Medical Pharmacy',
+    legalName: 'Medical Pharmacy Pvt. Ltd.',
     logoUrl: null,
     address: '18, Residency Road, Ashok Nagar',
     city: 'Bengaluru',
     state: 'Karnataka',
     pincode: '560025',
     phone: '+91 98765 11220',
-    email: 'rx@apexmedcare.in',
+    email: 'rx@medicalpharmacy.in',
     gstin: '29AABCA8899P1Z2',
     settings: {
       id: 'set-pharmacy',
@@ -861,7 +861,7 @@ function createInitialPharmacyDb() {
       enableTaxInclusive: false,
       defaultPaymentMethods: ['CASH', 'CARD', 'UPI', 'BANK_TRANSFER'],
       receiptFooter:
-        'Apex MedCare Pharmacy — Keep medicines out of reach of children. Schedule H/H1 drugs sold only against valid prescription.',
+        'Medical Pharmacy — Keep medicines out of reach of children. Schedule H/H1 drugs sold only against valid prescription.',
       printerPaperSize: '80mm' as '58mm' | '80mm' | 'A4',
       autoPrintReceipt: false,
       globalLowStockThreshold: 15,
@@ -1518,7 +1518,18 @@ function loadDb(mode: BusinessMode = getStoredBusinessMode()): LocalDB {
   try {
     const raw = localStorage.getItem(key);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed: LocalDB = JSON.parse(raw);
+      if (parsed?.business?.name?.startsWith('Apex ')) {
+        if (mode === 'pharmacy') {
+          parsed.business.name = 'Medical Pharmacy';
+          parsed.business.legalName = 'Medical Pharmacy Pvt. Ltd.';
+        } else {
+          parsed.business.name = 'Retail Store';
+          parsed.business.legalName = 'Retail Store Pvt. Ltd.';
+        }
+        saveDb(parsed, mode);
+      }
+      return parsed;
     }
   } catch {
     // Fallback to fresh seed

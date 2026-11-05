@@ -42,10 +42,10 @@ export const LoginPage: React.FC = () => {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border-r border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-xl shadow-lg">
-            A
+            S
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight">ApexPOS Enterprise</h1>
+            <h1 className="font-bold text-lg tracking-tight">Smart POS</h1>
             <p className="text-xs text-slate-400">{config.subtitle}</p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <p className="text-xs text-slate-500">
-          © {new Date().getFullYear()} ApexPOS Billing & Inventory System
+          © {new Date().getFullYear()} Smart POS Billing & Inventory System
         </p>
       </div>
 

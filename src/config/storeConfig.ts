@@ -19,7 +19,7 @@ import type { BusinessModeConfig } from './businessModes';
 export const storeConfig: BusinessModeConfig = {
   mode: 'store',
   label: 'Store',
-  title: 'Apex Retail Store',
+  title: 'Retail Store',
   subtitle: 'Retail Billing & Inventory PWA',
   heroBadge: 'Retail POS & Multi-Batch Inventory',
   heroHeadline: 'Fast retail checkout, accurate stock control, and complete auditability.',

@@ -1,4 +1,4 @@
-# Billing & Inventory Management PWA (`ApexPOS`)
+# Billing & Inventory Management PWA (`Smart POS`)
 
 A complete, responsive Progressive Web Application (PWA) for Billing (POS), Batch-Based Inventory Management (FEFO/FIFO), Supplier & Sales Returns, Expiry/Damage Monitoring, and Business Analytics.
 

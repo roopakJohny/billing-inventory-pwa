@@ -1,6 +1,6 @@
 {
-  "name": "ApexPOS — Billing & Inventory Management PWA",
-  "short_name": "ApexPOS",
+  "name": "Smart POS — Billing & Inventory Management PWA",
+  "short_name": "Smart POS",
   "description": "Complete Billing, Batch Inventory, and Business Analytics PWA",
   "start_url": ".",
   "display": "standalone",

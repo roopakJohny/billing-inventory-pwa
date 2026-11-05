@@ -53,7 +53,7 @@ export const SCHEDULE_CATEGORIES = [
 export const pharmacyConfig: BusinessModeConfig = {
   mode: 'pharmacy',
   label: 'Pharmacy',
-  title: 'Apex MedCare Pharmacy',
+  title: 'Medical Pharmacy',
   subtitle: 'Pharmacy Billing, Batch & Expiry PWA',
   heroBadge: 'FEFO Batch Allocation & Rx Compliance',
   heroHeadline: 'Safe dispensing, strict expiry control, and batch-accurate pharmacy billing.',

@@ -139,7 +139,7 @@ export const ReportsPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() =>
-              exportToCsv(`apexpos-${mode}-${tab}-report`, getActiveExportRows())
+              exportToCsv(`smartpos-${mode}-${tab}-report`, getActiveExportRows())
             }
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700"
           >
@@ -149,8 +149,8 @@ export const ReportsPage: React.FC = () => {
           <button
             onClick={() =>
               exportToExcel(
-                `apexpos-${mode}-${tab}-report`,
-                `ApexPOS (${config.label}) ${tab.toUpperCase()} Report`,
+                `smartpos-${mode}-${tab}-report`,
+                `Smart POS (${config.label}) ${tab.toUpperCase()} Report`,
                 getActiveExportRows()
               )
             }
@@ -162,7 +162,7 @@ export const ReportsPage: React.FC = () => {
           <button
             onClick={() =>
               exportReportToPdf(
-                `ApexPOS (${config.label}) — ${tab.toUpperCase()} Report`,
+                `Smart POS (${config.label}) — ${tab.toUpperCase()} Report`,
                 `Currency: ${currency} | Actual Batch Cost Accounting`,
                 getActiveExportRows()
               )

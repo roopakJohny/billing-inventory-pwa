@@ -110,7 +110,7 @@ export function exportReportToPdf(
 
 export function printInvoiceReceipt(
   sale: any,
-  businessName = 'Apex Mart & Pharmacy Enterprises',
+  businessName = 'Smart POS Store & Pharmacy',
   gstin = '29AABCA1234F1Z5',
   currency = '₹',
   footerNote = 'Thank you for shopping with us!'
